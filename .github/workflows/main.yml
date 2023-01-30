@@ -12,6 +12,7 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
 #  schedule:
 #    - cron: 0 8 * * 5
 #  watch:
@@ -19,7 +20,7 @@ on:
 
 jobs:
   build:
-    if: contains(github.event.head_commit.message, 'release:')
+#    if: contains(github.event.head_commit.message, 'release:')
     runs-on: ubuntu-18.04
 
     steps:
@@ -59,6 +60,9 @@ jobs:
     - name: Clone source code
       run: git clone --branch `cat release.tag` https://github.com/x-wrt/x-wrt.git
 
+    - name: Add custom feed
+      run: cat feeds.conf >> x-wrt/feeds.conf.default
+
     - name: Update feeds
       run: cd x-wrt && ./scripts/feeds update -a
 
@@ -71,7 +75,7 @@ jobs:
         cp release.tag x-wrt/
         cd x-wrt
         echo -e "$(nproc) thread build."
-        TARGET=x86_64 sh build.sh $(nproc)
+        TARGET=ramips-mt7621 sh build.sh $(nproc)
 
     - name : Upload make.log if failure
       uses: actions/upload-artifact@master
@@ -83,5 +87,5 @@ jobs:
     - name : Upload artifact
       uses: actions/upload-artifact@master
       with:
-        name: x-wrt-master=x86_64
+        name: x-wrt-master=ramips-mt7621
         path: x-wrt/rom
